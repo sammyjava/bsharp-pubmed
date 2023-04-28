@@ -1,6 +1,6 @@
 package org.bsharp.pubmed;
 
-import org.bsharp.pubmed.xml.*;
+import org.bsharp.pubmed.xml.efetch.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -54,13 +54,14 @@ public class Abstract {
      * @retmax the maximum number of articles to be returned
      * @return a comma-separated list of PMIDs
      */
-    public static String searchAbstract(String term, int retmax) throws IOException, UnsupportedEncodingException, ParserConfigurationException, SAXException {
+    public static String searchAbstract(String term, int retmax, String apikey) throws IOException, UnsupportedEncodingException, ParserConfigurationException, SAXException {
         // URL without API key
-        String searchUrl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax="+retmax+"&term="+URLEncoder.encode(term,"UTF-8")+"[Abstract]";
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax="+retmax+"&term="+URLEncoder.encode(term,"UTF-8")+"[Abstract]";
+        if (apikey!=null) uri += "&api_key=" + apikey;
         // parse the URL response
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(searchUrl);
+        Document doc = dBuilder.parse(uri);
         doc.getDocumentElement().normalize(); // recommended
         int count = Integer.parseInt(doc.getElementsByTagName("Count").item(0).getTextContent());
         if (count>0) {
@@ -84,9 +85,9 @@ public class Abstract {
      * @param ids a comma-separated list of PMIDs
      * @return a list of Abstract objects
      */
-    static List<Abstract> getAbstracts(String ids) throws IOException, JAXBException, XMLStreamException {
-        // fetch URL without API key
+    public static List<Abstract> getAbstracts(String ids, String apikey) throws IOException, JAXBException, XMLStreamException {
         String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id="+ids;
+        if (apikey!=null) uri += "&api_key=" + apikey;
         // fetch the PubmedArticleSet
         PubmedArticleSet articleSet = getPubmedArticleSet(uri);
         // return abstracts
@@ -159,15 +160,17 @@ public class Abstract {
      */
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException, JAXBException, XMLStreamException  {
         if (args.length<2) {
-            System.err.println("Usage: Abstract <retmax> <term>");
+            System.err.println("Usage: Abstract <retmax> <term> (apikey)}");
             System.exit(1);
         }
         int retmax = Integer.parseInt(args[0]);
         String term = args[1];
+        String apikey = null;
+        if (args.length>2) apikey = args[2];
         
-        String ids = Abstract.searchAbstract(term, retmax);
+        String ids = Abstract.searchAbstract(term, retmax, apikey);
         if (ids!=null) {
-            List<Abstract> abstracts = getAbstracts(ids);
+            List<Abstract> abstracts = getAbstracts(ids, apikey);
             for (Abstract a : abstracts) {
                 System.out.println("----------");
                 System.out.println(a);
