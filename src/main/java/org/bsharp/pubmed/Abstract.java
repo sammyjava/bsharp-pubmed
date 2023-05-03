@@ -1,6 +1,6 @@
 package org.bsharp.pubmed;
 
-import org.bsharp.pubmed.xml.efetch.*;
+import org.bsharp.pubmed.xml.pubmed.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
