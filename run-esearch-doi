@@ -1,0 +1,2 @@
+#!/bin/sh
+java -Djavax.xml.accessExternalDTD=https -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Summary --doi="$1" --apikey=$PUBMED_API_KEY

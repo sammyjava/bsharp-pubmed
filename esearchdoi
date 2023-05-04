@@ -1,2 +1,0 @@
-#!/bin/sh
-java -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Summary --doi="$1"
