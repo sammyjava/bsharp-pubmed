@@ -67,8 +67,7 @@ public class Pubmed {
      * @return a list of Abstract objects
      */
     public static List<Abstract> getAbstracts(List<String> idList, String apikey) throws JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException {
-        String pmids = idList.toString().replace("[","").replace("]","").replace(" ","");
-        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id="+pmids;
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id="+getCommaSeparatedString(idList);
         if (apikey!=null) uri += "&api_key=" + apikey;
         PubmedArticleSetDocument articleSet = getPubmedArticleSet(uri);
         return getAbstracts(articleSet);
@@ -89,8 +88,47 @@ public class Pubmed {
     }
 
     /**
+     * Return a single Summary given a PMID.
+     */
+    public static Summary getSummary(String pmid, String apikey) throws SAXException, JAXBException, XMLStreamException {
+        List<Summary> summaries = new ArrayList<>();
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id="+pmid;
+        if (apikey!=null) uri += "&api_key="+apikey;
+        org.bsharp.pubmed.xml.esummary.ESummaryResult result = getESummaryResult(uri);
+        for (Object o : result.getDocSumOrERROR()) {
+            if (o instanceof org.bsharp.pubmed.xml.esummary.DocSum) {
+                return new Summary((org.bsharp.pubmed.xml.esummary.DocSum) o);
+            } else if (o instanceof org.bsharp.pubmed.xml.esummary.ERROR) {
+                return new Summary((org.bsharp.pubmed.xml.esummary.ERROR) o);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Return a List of Summaries given a List of PMIDs, empty if none found.
+     *
+     * @param idList List of PMIDs
+     * @param apikey optional PubMed API key
+     * @return a List of Summary objects
+     */
+    public static List<Summary> getSummaries(List<String> idList, String apikey) throws SAXException, JAXBException, XMLStreamException {
+        List<Summary> summaries = new ArrayList<>();
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id="+getCommaSeparatedString(idList);
+        if (apikey!=null) uri += "&api_key="+apikey;
+        org.bsharp.pubmed.xml.esummary.ESummaryResult result = getESummaryResult(uri);
+        for (Object o : result.getDocSumOrERROR()) {
+            if (o instanceof org.bsharp.pubmed.xml.esummary.DocSum) {
+                summaries.add(new Summary((org.bsharp.pubmed.xml.esummary.DocSum) o));
+            } else if (o instanceof org.bsharp.pubmed.xml.esummary.ERROR) {
+                summaries.add(new Summary((org.bsharp.pubmed.xml.esummary.ERROR) o));
+            }
+        }
+        return summaries;
+    }
+
+    /**
      * Unmarshal an org.bsharp.pubmed.xml.esearch.ESearchResult from a given URI.
-     * TODO: put this in its own class.
      *
      * @param uri full PubMed esearch URI
      * @return an ESearchResult
@@ -114,7 +152,18 @@ public class Pubmed {
             .setLoadSubstituteNamespaces​(nses);
         return PubmedArticleSetDocument.Factory.parse(new URL(uri), options);
     }
-    
+
+    /**
+     * Unmarshal an org.bsharp.pubmed.xml.esummary.ESummaryResult from a given URI.
+     *
+     * @param uri full PubMed esummary URI
+     * @return an ESummaryResult
+     */
+    public static org.bsharp.pubmed.xml.esummary.ESummaryResult getESummaryResult(String uri) throws JAXBException, XMLStreamException {
+        JAXBContext context = JAXBContext.newInstance(org.bsharp.pubmed.xml.esummary.ESummaryResult.class);
+        return (org.bsharp.pubmed.xml.esummary.ESummaryResult) context.createUnmarshaller().unmarshal(new StreamSource(uri));
+    }
+
     /**
      * Return the count from an ESearchResult, 0 if not found.
      */
@@ -161,7 +210,7 @@ public class Pubmed {
      * @param apikey an optional PubMed API key
      * @return an Abstract, null if not found
      */
-    public static Abstract esearchDOI(String doi, String apikey)
+    public static Abstract searchAbstractDOI(String doi, String apikey)
         throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException {
         String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term="+URLEncoder.encode(doi,"UTF-8")+"[DOI]";
         if (apikey!=null) uri += "&api_key="+apikey;
@@ -185,7 +234,7 @@ public class Pubmed {
      * @param apikey optional PubMed API key
      * @return a List of Abstracts, empty if none found
      */
-    public static List<Abstract> esearchText(String term, int retmax, String apikey)
+    public static List<Abstract> searchAbstractText(String term, int retmax, String apikey)
         throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException {
         String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax="+retmax+"&term="+URLEncoder.encode(term,"UTF-8")+"[Abstract]";
         if (apikey!=null) uri += "&api_key=" + apikey;
@@ -207,19 +256,83 @@ public class Pubmed {
     }
 
     /**
+     * Return a Summary searching on DOI with an optional API key. Returns null if none found.
+     *
+     * @param doi the DOI
+     * @param apikey an optional PubMed API key
+     * @return a Summary
+     */
+    public static Summary searchSummaryDOI(String doi, String apikey) throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException {
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term="+URLEncoder.encode(doi,"UTF-8")+"[DOI]";
+        if (apikey!=null) uri += "&api_key="+apikey;
+        org.bsharp.pubmed.xml.esearch.ESearchResult result = getESearchResult(uri);
+        org.bsharp.pubmed.xml.esearch.ERROR error = getESearchResultERROR(result);
+        if (error!=null) {
+            return new Summary(error);
+        }
+        List<String> idList = getESearchResultIdList(result);
+        if (idList.size()>0) {
+            return getSummary(idList.get(0), apikey);
+        } else {
+            return null;
+        }        
+    }
+
+    /**
+     * Return a List of Summary by searching on title. Set apikey to null if not supplied. Return empty list if none found.
+     *
+     * @param title the title to search
+     * @param retmax the maximum number of returned articles
+     * @param apikey optional PubMed API key
+     * @return a single Summary resulting from the search
+     */
+    public static List<Summary> searchSummaryTitle(String title, int retmax, String apikey) throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException {
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax="+retmax+"&term="+URLEncoder.encode(title,"UTF-8")+"[Title]";
+        if (apikey!=null) uri += "&api_key="+apikey;
+        org.bsharp.pubmed.xml.esearch.ESearchResult result = getESearchResult(uri);
+        org.bsharp.pubmed.xml.esearch.ERROR error = getESearchResultERROR(result);
+        if (error!=null) {
+            List<Summary> list = new ArrayList<>();
+            list.add(new Summary(error));
+            return list;
+        }
+        List<String> idList = getESearchResultIdList(result);
+        if (idList.size()>0) {
+            return getSummaries(idList, apikey);
+        } else {
+            return new ArrayList<Summary>();
+        }
+    }
+
+    /**
+     * Return a comma-separated String formed from a List of Strings.
+     */
+    static String getCommaSeparatedString(List<String> list) {
+        return list.toString().replace("[","").replace("]","").replace(" ","");
+    }
+    
+    /**
      * Command-line utility.
      */
-    public static void main(String[] args) throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException  {
+    public static void main(String[] args) throws SAXException, JAXBException, XMLStreamException, UnsupportedEncodingException, MalformedURLException, XmlException, IOException {
         Options options = new Options();
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
 
-        Option apikeyOption = new Option("a", "apikey", true, "PubMed API key [optional]");
+        Option abstractOption = new Option("a", "abstract", false, "Search for abstracts");
+        abstractOption.setRequired(false);
+        options.addOption(abstractOption);
+
+        Option summaryOption = new Option("s", "summary", false, "Search for summaries");
+        summaryOption.setRequired(false);
+        options.addOption(summaryOption);
+        
+        Option apikeyOption = new Option("k", "apikey", true, "PubMed API key [optional]");
         apikeyOption.setRequired(false);
         options.addOption(apikeyOption);
         
-        Option pmidsOption = new Option("p", "pmids", true, "comma-separated list of PMIDs for esummary request");
+        Option pmidsOption = new Option("p", "pmids", true, "comma-separated list of PMIDs for efetch or esummary request");
         pmidsOption.setRequired(false);
         options.addOption(pmidsOption);
 
@@ -230,8 +343,8 @@ public class Pubmed {
         Option doiOption = new Option("d", "doi", true, "value of DOI for esearch request");
         doiOption.setRequired(false);
         options.addOption(doiOption);
-        
-        Option retmaxOption = new Option("m", "retmax", true, "maximum number of returned Summaries [20]");
+
+        Option retmaxOption = new Option("m", "retmax", true, "maximum number of returned objects [20]");
         retmaxOption.setRequired(false);
         options.addOption(retmaxOption);
         
@@ -249,42 +362,75 @@ public class Pubmed {
             return;
         }
 
+        if (!cmd.hasOption("abstract") && !cmd.hasOption("summary")) {
+            System.err.println("You must choose either --abstract or --summary.");
+            System.exit(1);
+        }
+
         String apikey = null;
         if (cmd.hasOption("apikey")) apikey = cmd.getOptionValue("apikey");
 
         int retmax = 20;
         if (cmd.hasOption("retmax")) retmax = Integer.parseInt(cmd.getOptionValue("retmax"));
         
+        List<String> idList = null;
         if (cmd.hasOption("pmids")) {
             String pmids = cmd.getOptionValue("pmids");
-            System.out.println("esummary "+pmids);
-            List<String> idList = Arrays.asList(pmids.split(","));
-            List<Abstract> abstracts = getAbstracts(idList, apikey);
-            for (Abstract a : abstracts) {
-                System.out.println("--------------------");
-                System.out.println(a.toString());
+            idList = Arrays.asList(pmids.split(","));
+            if (cmd.hasOption("abstract")) {
+                System.out.println("efetch pmids=" + pmids);
+                List<Abstract> abstracts = getAbstracts(idList, apikey);
+                for (Abstract a : abstracts) {
+                    System.out.println("--------------------");
+                    System.out.println(a.toString());
+                }
+            }
+            if (cmd.hasOption("summary")) {
+                System.out.println("esummary pmids=" + pmids);
+                List<Summary> summaries = getSummaries(idList, apikey);
+                for (Summary s : summaries) {
+                    System.out.println("--------------------");
+                    System.out.println(s.toString());
+                }
             }
         }
             
         if (cmd.hasOption("text")) {
             String text = cmd.getOptionValue("text");
             System.out.println("esearch text="+text+" retmax="+retmax);
-            List<Abstract> abstracts = esearchText(text, retmax, apikey);
-            for (Abstract a : abstracts) {
-                System.out.println("--------------------");
-                System.out.println(a.toString());
+            if (cmd.hasOption("abstract")) {
+                List<Abstract> abstracts = searchAbstractText(text, retmax, apikey);
+                for (Abstract a : abstracts) {
+                    System.out.println("--------------------");
+                    System.out.println(a.toString());
+                }
+            }
+            if (cmd.hasOption("summary")) {
+                List<Summary> summaries = searchSummaryTitle(text, retmax, apikey);
+                for (Summary s : summaries) {
+                    System.out.println("--------------------");
+                    System.out.println(s.toString());
+                }
             }
         }
         
         if (cmd.hasOption("doi")) {
             String doi = cmd.getOptionValue("doi");
             System.out.println("esearch DOI="+doi);
-            Abstract a = esearchDOI(doi, apikey);
-            if (a!=null) {
-                System.out.println("--------------------");
-                System.out.println(a.toString());
+            if (cmd.hasOption("abstract")) {
+                Abstract a = searchAbstractDOI(doi, apikey);
+                if (a!=null) {
+                    System.out.println("--------------------");
+                    System.out.println(a.toString());
+                }
+            }
+            if (cmd.hasOption("summary")) {
+                Summary summary = searchSummaryDOI(doi, apikey);
+                if (summary!=null) {
+                    System.out.println("--------------------");
+                    System.out.println(summary.toString());
+                }
             }
         }
     }
-
 }

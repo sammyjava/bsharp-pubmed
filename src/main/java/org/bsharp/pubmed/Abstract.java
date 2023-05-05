@@ -2,28 +2,8 @@ package org.bsharp.pubmed;
 
 import gov.nih.nlm.ncbi.eutils.*;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-        
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.stream.StreamSource;
-
-import org.xml.sax.SAXException;
 
 /**
  * Contains an Abstract from a PubmedArticle.
@@ -36,7 +16,6 @@ public class Abstract {
     String text;
     String pmcid;
     String doi;
-    
     List<String> keywords = new ArrayList<>();
     
     /**
