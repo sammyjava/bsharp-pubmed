@@ -7,4 +7,4 @@
 #  -t,--text <arg>     value of text for esearch request
 
 ## the javax.xml.accessExternalDTD property must be set to https!
-java -Djavax.xml.accessExternalDTD=https -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Abstract --pmids="$1" --apikey=$PUBMED_API_KEY
+java -Djavax.xml.accessExternalDTD=https -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Pubmed --doi="$1" --apikey=$PUBMED_API_KEY
