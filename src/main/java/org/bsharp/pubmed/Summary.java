@@ -1,5 +1,9 @@
 package org.bsharp.pubmed;
 
+import org.bsharp.pubmed.xml.esummary.DocSum;
+import org.bsharp.pubmed.xml.esummary.ERROR;
+import org.bsharp.pubmed.xml.esummary.Item;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,29 +19,29 @@ public class Summary {
     public static String CHARSET = "UTF-8";
 
     // ERROR fields
-    public String error;
+    String error;
 
     // DocSum fields
-    public String pmid;
-    public String pubDate;
-    public String ePubDate;
-    public String source;
-    public String lastAuthor;
-    public String title;
-    public String volume;
-    public String issue;
-    public String pages;
-    public String nlmUniqueId;
-    public String issn;
-    public String essn;
-    public String recordStatus;
-    public String pubStatus;
-    public String doi;
-    public boolean hasAbstract;
-    public int pmcRefCount;
-    public String fullJournalName;
-    public String eLocationId;
-    public String so;
+    String pmid;
+    String pubDate;
+    String ePubDate;
+    String source;
+    String lastAuthor;
+    String title;
+    String volume;
+    String issue;
+    String pages;
+    String nlmUniqueId;
+    String issn;
+    String essn;
+    String recordStatus;
+    String pubStatus;
+    String doi;
+    boolean hasAbstract;
+    int pmcRefCount;
+    String fullJournalName;
+    String eLocationId;
+    String so;
 
     // having trouble with these!
     // public List<String> authorList = new ArrayList<String>();
@@ -48,13 +52,13 @@ public class Summary {
     // public Map<String,String> references = new LinkedHashMap<String,String>();
 
     /**
-     * Construct from a org.bsharp.pubmed.xml.esummary.DocSum
+     * Construct from a DocSum
      */ 
-    public Summary(org.bsharp.pubmed.xml.esummary.DocSum docSum) {
-        this.pmid = docSum.getId();
+    public Summary(DocSum docSum) {
+        pmid = docSum.getId();
         // PROBLEM: this only returns top-level Items, not those within a List!
-        List<org.bsharp.pubmed.xml.esummary.Item> items = docSum.getItem();
-        for (org.bsharp.pubmed.xml.esummary.Item item : items) {
+        List<Item> items = docSum.getItem();
+        for (Item item : items) {
             switch (item.getName()) {
             case "PubDate": pubDate = item.getvalue(); break;
             case "EPubDate": ePubDate = item.getvalue(); break;
@@ -95,17 +99,17 @@ public class Summary {
     }
 
     /**
-     * Construct from an org.bsharp.pubmed.xml.esummary.ERROR.
+     * Construct from an ERROR.
      */
-    Summary(org.bsharp.pubmed.xml.esummary.ERROR esummaryError) {
-        this.error = esummaryError.getvalue();
+    Summary(ERROR esummaryError) {
+        error = esummaryError.getvalue();
     }
 
     /**
      * Construct from an org.bsharp.pubmed.xml.esearch.ERROR.
      */
     Summary(org.bsharp.pubmed.xml.esearch.ERROR esearchError) {
-        this.error = esearchError.getvalue();
+        error = esearchError.getvalue();
     }
 
     /**

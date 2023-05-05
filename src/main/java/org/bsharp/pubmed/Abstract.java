@@ -1,6 +1,11 @@
 package org.bsharp.pubmed;
 
-import gov.nih.nlm.ncbi.eutils.*;
+import gov.nih.nlm.ncbi.eutils.AbstractType;
+import gov.nih.nlm.ncbi.eutils.ArticleIdType;
+import gov.nih.nlm.ncbi.eutils.ArticleType;
+import gov.nih.nlm.ncbi.eutils.KeywordListType;
+import gov.nih.nlm.ncbi.eutils.KeywordType;
+import gov.nih.nlm.ncbi.eutils.PubmedArticleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,43 +56,43 @@ public class Abstract {
     }
 
     public void setError(String s) {
-        this.error = s;
+        error = s;
     }
     public String getError() {
         return error;
     }
     public void setPMID(String s) {
-        this.pmid = s;
+        pmid = s;
     }
     public String getPMID() {
         return pmid;
     }
     public void setTitle(String s) {
-        this.title = s;
+        title = s;
     }
     public String getTitle() {
         return title;
     }
     public void setText(String s) {
-        this.text = s;
+        text = s;
     }
     public String getText() {
         return text;
     }
     public void setPMCID(String s) {
-        this.pmcid = s;
+        pmcid = s;
     }
     public String getPMCID() {
         return pmcid;
     }
     public void setDOI(String s) {
-        this.doi = s;
+        doi = s;
     }
     public String getDOI() {
         return doi;
     }
     public void setKeywords(List<String> list) {
-        this.keywords = list;
+        keywords = list;
     }
     public void addKeyword(String s) {
         keywords.add(s);
