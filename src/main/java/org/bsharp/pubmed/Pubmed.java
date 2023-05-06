@@ -8,6 +8,8 @@ import org.bsharp.pubmed.xml.esearch.IdList;
 import org.bsharp.pubmed.xml.esummary.DocSum;
 import org.bsharp.pubmed.xml.esummary.ESummaryResult;
 
+import org.bsharp.pubmed.xml.nlmarticleset.PmcArticleset;
+
 import gov.nih.nlm.ncbi.eutils.PubmedArticleSetDocument;
 import gov.nih.nlm.ncbi.eutils.PubmedArticleType;
 
@@ -90,15 +92,15 @@ public class Pubmed {
     }
 
     /**
-     * Unmarshal an PmcArticlesetType from a given efetch URI.
+     * Unmarshal an PmcArticleset from a given efetch URI.
      *
      * @param uri full PubMed efetch URI
      * @return a PmcArticlesetType
      */
-    public static PmcArticlesetType getPmcArticlesetType(String uri) throws JAXBException, XMLStreamException {
-        JAXBContext context = JAXBContext.newInstance(PmcArticlesetType.class);
-        // return (PmcArticlesetType) context.createUnmarshaller().unmarshal(new StreamSource(uri));
-        PmcArticlesetType articlesetType = (PmcArticlesetType) context.createUnmarshaller().unmarshal(new StreamSource(uri));
+    public static PmcArticleset getPmcArticleset(String uri) throws JAXBException, XMLStreamException {
+        JAXBContext context = JAXBContext.newInstance(PmcArticleset.class);
+        // return (PmcArticleset) context.createUnmarshaller().unmarshal(new StreamSource(uri));
+        PmcArticleset articlesetType = (PmcArticleset) context.createUnmarshaller().unmarshal(new StreamSource(uri));
         return articlesetType;
     }
 
@@ -200,8 +202,8 @@ public class Pubmed {
     public static Article getArticle(String pmcid, String apikey) throws SAXException, JAXBException, XMLStreamException {
         String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id="+pmcid;
         if (apikey!=null) uri += "&api_key="+apikey;
-        PmcArticlesetType articleSetType = getPmcArticlesetType(uri);
-        for (ArticleType a : articleSetType.getArticleList()) {
+        PmcArticleset articleSet = getPmcArticleset(uri);
+        for (org.bsharp.pubmed.xml.nlmarticleset.Article a : articleSet.getArticle()) {
             return new Article(a);
         }
         return null;
@@ -218,8 +220,8 @@ public class Pubmed {
         List<Article> articles = new ArrayList<>();
         String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id="+getCommaSeparatedString(pmcidList);
         if (apikey!=null) uri += "&api_key="+apikey;
-        PmcArticlesetType articleSetType = getPmcArticlesetType(uri);
-        for (ArticleType a : articleSetType.getArticleList()) {
+        PmcArticleset articleSet = getPmcArticleset(uri);
+        for (org.bsharp.pubmed.xml.nlmarticleset.Article a : articleSet.getArticle()) {
             articles.add(new Article(a));
         }
         return articles;
@@ -462,8 +464,8 @@ public class Pubmed {
                 System.out.println("efetch ids=" + ids);
                 List<Article> articles = getArticles(idList, apikey);
                 for (Article a : articles) {
-                    // System.out.println("--------------------");
-                    // System.out.println(a.toString());
+                    System.out.println("--------------------");
+                    System.out.println(a.toString());
                 }
             }
         }
