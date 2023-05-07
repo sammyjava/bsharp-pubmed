@@ -9,6 +9,8 @@ import org.w3c.dom.NodeList;
 
 /**
  * Encapsulates a PubMed Central Article with a lot less data.
+ * This uses old-school Node tree handling since there don't seem to be methods to get 
+ * the various objects!
  */
 public class Article {
 
@@ -35,7 +37,7 @@ public class Article {
     }
 
     /**
-     * Handle a top-level Element
+     * Handle a top-level Element, drilling down through three levels.
      */
     void handleElement(Element e) {
         NodeList nl1 = e.getChildNodes();
@@ -128,60 +130,60 @@ public class Article {
             break;
         default:
             // signal that we've got a new type of node
-            System.err.println("? " + n.getNodeName());
+            System.err.println(depth+": " + n.getNodeName());
         }
     }
 
-    // ? journal-meta
-    // ? journal-id
-    // ? journal-id
-    // ? journal-title-group
-    // ? journal-title
-    // ? issn
-    // ? publisher
-    // ? publisher-name
-    // ? publisher-loc
-    // ? article-meta
-    // ? article-categories
-    // ? subj-group
-    // ? title-group
-    // ? contrib-group
-    // ? pub-date
-    // ? day
-    // ? month
-    // ? year
-    // ? pub-date
-    // ? day
-    // ? month
-    // ? year
-    // ? pub-date
-    // ? year
-    // ? volume
-    // ? elocation-id
-    // ? history
-    // ? date
-    // ? date
-    // ? permissions
-    // ? copyright-statement
-    // ? license
-    // ? kwd-group
-    // ? kwd
-    // ? kwd
-    // ? funding-group
-    // ? award-group
-    // ? custom-meta-group
-    // ? custom-meta
-    // ? ack
-    // ? notes
-    // ? notes
-    // ? ref-list
+    // 1: journal-meta
+    // 2: journal-id
+    // 2: journal-title-group
+    // 3: journal-title
+    // 2: issn
+    // 2: publisher
+    // 3: publisher-name
+    // 3: publisher-loc
+    //
+    // 1: article-meta
+    // 2: article-categories
+    // 3: subj-group
+    // 2: title-group
+    // 3: alt-title
+    // 2: contrib-group
+    // 3: addr-line
+    // 2: contrib-group
+    // 2: author-notes
+    // 3: corresp
+    // 2: pub-date
+    // 3: day
+    // 3: month
+    // 3: year
+    // 2: volume
+    // 2: issue
+    // 2: elocation-id
+    // 2: history
+    // 3: date
+    // 2: permissions
+    // 3: license
+    // 2: self-uri
+    // 2: funding-group
+    // 3: award-group
+    // 3: funding-statement
+    // 2: counts
+    // 3: fig-count
+    // 3: table-count
+    // 3: page-count
+    // 2: custom-meta-group
+    // 3: custom-meta
+    //
+    // 1: notes
+    // 3: ext-link
+    //
+    // 1: ack
+    //
+    // 1: ref-list
 
     /**
      * Handle an article-id node.
-     * article-id: pmid:32986776
-     * article-id: pmc:7521676
-     * article-id: doi:10.1371/journal.pone.0239998
-     * article-id: publisher-id:PONE-D-20-24902
      */
     void handleArticleId(Node n) {
         switch (n.getAttributes().getNamedItem("pub-id-type").getTextContent()) {
