@@ -126,16 +126,29 @@ public class Pubmed {
 
     /**
      * Retrieve a List of Abstracts for a List of article PMIDs.
+     * There is a limit at PubMed on the number that can be fetched at once, so we split into groups of 100.
      *
      * @param idList a List of PMIDs
      * @param apikey an optional PubMed API key
      * @return a list of Abstract objects
      */
     public static List<Abstract> getAbstracts(List<String> idList, String apikey) throws JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException {
-        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id="+getCommaSeparatedString(idList);
+        List<Abstract> abstracts = new ArrayList<>();
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract";
         if (apikey!=null) uri += "&api_key=" + apikey;
-        PubmedArticleSetDocument articleSet = getPubmedArticleSet(uri);
-        return getAbstracts(articleSet);
+        int start = 0;
+        int end = Math.min(100, idList.size());
+        boolean hasMore = true;
+        while (hasMore) {
+            List<String> idSubList = idList.subList(start, end);
+            String subUri = uri + "&id=" + getCommaSeparatedString(idSubList);
+            PubmedArticleSetDocument articleSet = getPubmedArticleSet(subUri);
+            abstracts.addAll(getAbstracts(articleSet));
+            start = Math.min(start + 100, idList.size());
+            end = Math.min(end + 100, idList.size());
+            hasMore = start < idList.size();
+        }
+        return abstracts;
     }
     
     /**
@@ -227,7 +240,6 @@ public class Pubmed {
         return articles;
     }
     
-    
     /**
      * Return the count from an ESearchResult, 0 if not found.
      */
@@ -311,10 +323,8 @@ public class Pubmed {
         }
         List<String> idList = getESearchResultIdList(result);
         if (idList.size()>0) {
-            // concatenate ids and return List of Abstracts
             return getAbstracts(idList, apikey);
         } else {
-            // none found, return empty List
             return new ArrayList<Abstract>();
         }
     }
