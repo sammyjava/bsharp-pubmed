@@ -330,6 +330,33 @@ public class Pubmed {
     }
 
     /**
+     * Return a List of Abstracts that match a given search term in the abstract title. Limit the number with retmax.
+     *
+     * @param term the search term
+     * @param retmax the maximum number of articles to be returned
+     * @param apikey optional PubMed API key
+     * @return a List of Abstracts, empty if none found
+     */
+    public static List<Abstract> searchAbstractTitle(String term, int retmax, String apikey)
+        throws UnsupportedEncodingException, SAXException, JAXBException, XMLStreamException, MalformedURLException, XmlException, IOException {
+        String uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax="+retmax+"&term="+URLEncoder.encode(term,"UTF-8")+"[Title]";
+        if (apikey!=null) uri += "&api_key=" + apikey;
+        ESearchResult result = getESearchResult(uri);
+        org.bsharp.pubmed.xml.esearch.ERROR error = getESearchResultERROR(result);
+        if (error!=null) {
+            List<Abstract> abstracts = new ArrayList<>();
+            abstracts.add(new Abstract(error));
+            return abstracts;
+        }
+        List<String> idList = getESearchResultIdList(result);
+        if (idList.size()>0) {
+            return getAbstracts(idList, apikey);
+        } else {
+            return new ArrayList<Abstract>();
+        }
+    }
+
+    /**
      * Return a Summary searching on DOI with an optional API key. Returns null if none found.
      *
      * @param doi the DOI
@@ -377,7 +404,7 @@ public class Pubmed {
             return new ArrayList<Summary>();
         }
     }
-
+    
     /**
      * Return a comma-separated String formed from a List of Strings.
      */
@@ -484,14 +511,23 @@ public class Pubmed {
             String text = cmd.getOptionValue("text");
             System.out.println("esearch text="+text+" retmax="+retmax);
             if (cmd.hasOption("abstract")) {
-                List<Abstract> abstracts = searchAbstractText(text, retmax, apikey);
-                for (Abstract a : abstracts) {
+                // search both text and title for abstracts
+                Map<String,Abstract> abstracts = new HashMap<>();
+                for (Abstract a : searchAbstractText(text, retmax, apikey)) {
+                    abstracts.put(a.getPMID(), a);
+                }
+                for (Abstract a : searchAbstractTitle(text, retmax, apikey)) {
+                    abstracts.put(a.getPMID(), a);
+                }
+                // output
+                for (Abstract a : abstracts.values()) {
                     System.out.println("--------------------");
                     System.out.println(a.toString());
                 }
             }
             if (cmd.hasOption("summary")) {
                 List<Summary> summaries = searchSummaryTitle(text, retmax, apikey);
+                // output
                 for (Summary s : summaries) {
                     System.out.println("--------------------");
                     System.out.println(s.toString());
