@@ -1,0 +1,3 @@
+#!/bin/sh
+FILENAME=$1
+java -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Abstract $FILENAME

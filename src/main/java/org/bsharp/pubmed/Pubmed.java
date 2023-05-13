@@ -75,9 +75,17 @@ public class Pubmed {
         // do this because of namespace mismatch between "" and "http://www.ncbi.nlm.nih.gov/eutils"
         Map<String,String> nses = new HashMap<>();
         nses.put("", "http://www.ncbi.nlm.nih.gov/eutils");
-        XmlOptions options = new XmlOptions()
-            .setLoadSubstituteNamespaces​(nses);
-        return PubmedArticleSetDocument.Factory.parse(new URL(uri), options);
+        XmlOptions options = new XmlOptions().setLoadSubstituteNamespaces​(nses);
+        // this crashes sometimes
+        PubmedArticleSetDocument pasd = null;
+        while (pasd == null) {
+            try {
+                pasd = PubmedArticleSetDocument.Factory.parse(new URL(uri), options);
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+            }
+        }
+        return pasd;
     }
 
     /**
@@ -104,6 +112,22 @@ public class Pubmed {
         return articlesetType;
     }
 
+    /**
+     * Return a List of Abstracts extracted from a PubmedArticleSet. Don't include those with null title or PMID.
+     *
+     * @param articleSet a PubmedArticleSet
+     * @return a list of Abstract objects
+     */
+    static List<Abstract> getAbstracts(PubmedArticleSetDocument articleSetDocument) {
+        List<Abstract> abstractList = new ArrayList<>();
+        for (PubmedArticleType pubmedArticleType : articleSetDocument.getPubmedArticleSet().getPubmedArticleArray()) {
+            Abstract a = new Abstract(pubmedArticleType);
+            if (a.getTitle()!=null && a.getPMID()!=null) {
+                abstractList.add(a);
+            }
+        }
+        return abstractList;
+    }
     
     /**
      * Retrieve a single Abstract for a single PMID, null if not found.
@@ -151,20 +175,6 @@ public class Pubmed {
         return abstracts;
     }
     
-    /**
-     * Return a List of Abstracts extracted from a PubmedArticleSet.
-     *
-     * @param articleSet a PubmedArticleSet
-     * @return a list of Abstract objects
-     */
-    static List<Abstract> getAbstracts(PubmedArticleSetDocument articleSetDocument) {
-        List<Abstract> abstractList = new ArrayList<>();
-        for (PubmedArticleType pubmedArticleType : articleSetDocument.getPubmedArticleSet().getPubmedArticleArray()) {
-            abstractList.add(new Abstract(pubmedArticleType));
-        }
-        return abstractList;
-    }
-
     /**
      * Return a single Summary given a PMID.
      */
@@ -509,26 +519,20 @@ public class Pubmed {
             String ids = cmd.getOptionValue("ids");
             List<String> idList = Arrays.asList(ids.split(","));
             if (cmd.hasOption("abstract")) {
-                System.out.println("efetch ids=" + ids);
                 List<Abstract> abstracts = getAbstracts(idList, apikey);
                 for (Abstract a : abstracts) {
-                    System.out.println("--------------------");
                     System.out.println(a.toString());
                 }
             }
             if (cmd.hasOption("summary")) {
-                System.out.println("esummary ids=" + ids);
                 List<Summary> summaries = getSummaries(idList, apikey);
                 for (Summary s : summaries) {
-                    System.out.println("--------------------");
                     System.out.println(s.toString());
                 }
             }
             if (cmd.hasOption("article")) {
-                System.out.println("efetch ids=" + ids);
                 List<Article> articles = getArticles(idList, apikey);
                 for (Article a : articles) {
-                    System.out.println("--------------------");
                     System.out.println(a.toString());
                 }
             }
@@ -536,13 +540,11 @@ public class Pubmed {
             
         if (cmd.hasOption("text")) {
             String text = cmd.getOptionValue("text");
-            System.out.println("esearch text="+text+" retmax="+retmax);
             if (cmd.hasOption("abstract")) {
                 // search abstract title and text
                 List<Abstract> abstracts = searchAbstractTitleAndText(text, retmax, apikey);
                 // output
                 for (Abstract a : abstracts) {
-                    System.out.println("--------------------");
                     System.out.println(a.toString());
                 }
             }
@@ -551,7 +553,6 @@ public class Pubmed {
                 List<Summary> summaries = searchSummaryTitle(text, retmax, apikey);
                 // output
                 for (Summary s : summaries) {
-                    System.out.println("--------------------");
                     System.out.println(s.toString());
                 }
             }
@@ -559,18 +560,15 @@ public class Pubmed {
         
         if (cmd.hasOption("doi")) {
             String doi = cmd.getOptionValue("doi");
-            System.out.println("esearch DOI="+doi);
             if (cmd.hasOption("abstract")) {
                 Abstract a = searchAbstractDOI(doi, apikey);
                 if (a!=null) {
-                    System.out.println("--------------------");
                     System.out.println(a.toString());
                 }
             }
             if (cmd.hasOption("summary")) {
                 Summary summary = searchSummaryDOI(doi, apikey);
                 if (summary!=null) {
-                    System.out.println("--------------------");
                     System.out.println(summary.toString());
                 }
             }

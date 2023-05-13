@@ -8,5 +8,8 @@
 #  -s,--summary        Search for summaries
 #  -t,--text <arg>     value of text for esearch request
 
+RETMAX=$1
+TEXT=$2
+
 ## the javax.xml.accessExternalDTD property must be set to https!
-java -Djavax.xml.accessExternalDTD=https -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Pubmed --abstract --text="$1" --apikey=$PUBMED_API_KEY --retmax=10
+java -Djavax.xml.accessExternalDTD=https -cp "build/install/bsharp-pubmed/lib/*" org.bsharp.pubmed.Pubmed --abstract --text="$TEXT" --apikey=$PUBMED_API_KEY --retmax=$RETMAX

@@ -123,41 +123,42 @@ public class Summary {
      * Spit out a string representation of this summary.
      */
     public String toString() {
-        String out = "";
+        StringBuffer sb = new StringBuffer();
+        sb.append("---\n");
         if (error!=null) {
-            out += "ERROR:" + error;
+            sb.append("ERROR:" + error);
         } else {
-            out += "PMID:"+pmid+"\n";
-            out += "PubDate:"+pubDate+"\n";
-            out += "EPubDate:"+ePubDate+"\n";
-            out += "Source:"+source+"\n";
+            sb.append("PMID:"+pmid+"\n");
+            sb.append("PubDate:"+pubDate+"\n");
+            sb.append("EPubDate:"+ePubDate+"\n");
+            sb.append("Source:"+source+"\n");
             // for (String author : authorList) {
-            //     out += "Author:"+author+"\n";
+            //     sb.append("Author:"+author+"\n");
             // }
-            out += "LastAuthor:"+lastAuthor+"\n";
-            out += "Title:"+title+"\n";
-            out += "Volume:"+volume+"\n";
-            out += "Issue:"+issue+"\n";
-            out += "Pages:"+pages+"\n";
+            sb.append("LastAuthor:"+lastAuthor+"\n");
+            sb.append("Title:"+title+"\n");
+            sb.append("Volume:"+volume+"\n");
+            sb.append("Issue:"+issue+"\n");
+            sb.append("Pages:"+pages+"\n");
             // for (String lang : langList) {
-            //     out += "Lang:"+lang+"\n";
+            //     sb.append("Lang:"+lang+"\n");
             // }
-            out += "NlmUniqueID:"+nlmUniqueId+"\n";
-            out += "ISSN:"+issn+"\n";
-            out += "ESSN:"+essn+"\n";
+            sb.append("NlmUniqueID:"+nlmUniqueId+"\n");
+            sb.append("ISSN:"+issn+"\n");
+            sb.append("ESSN:"+essn+"\n");
             // for (String pubType : pubTypeList) {
-            //     out += "PubType:"+pubType+"\n";
+            //     sb.append("PubType:"+pubType+"\n");
             // }
-            out += "RecordStatus:"+recordStatus+"\n";
-            out += "PubStatus:"+pubStatus+"\n";
-            out += "DOI:"+doi+"\n";
-            out += "HasAbstract:"+hasAbstract+"\n";
-            out += "PmcRefCount:"+pmcRefCount+"\n";
-            out += "FullJournalName:"+fullJournalName+"\n";
-            out += "ELocationID:"+eLocationId+"\n";
-            out += "SO:"+so+"\n";
+            sb.append("RecordStatus:"+recordStatus+"\n");
+            sb.append("PubStatus:"+pubStatus+"\n");
+            sb.append("DOI:"+doi+"\n");
+            sb.append("HasAbstract:"+hasAbstract+"\n");
+            sb.append("PmcRefCount:"+pmcRefCount+"\n");
+            sb.append("FullJournalName:"+fullJournalName+"\n");
+            sb.append("ELocationID:"+eLocationId+"\n");
+            sb.append("SO:"+so+"\n");
         }
-        return out;
+        return sb.toString();
     }
 }
 
